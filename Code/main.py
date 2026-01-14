@@ -1,26 +1,36 @@
+""" LIBRARIES """
+
 # the "cool style" libraries
 from colorama.ansi import AnsiFore
 from art import tprint as art
 from colorama import Fore
 
 # the "fixers" ones
-from os import makedirs, system, remove, removedirs
+from os import makedirs, system, remove, removedirs, path
 from sys import exit as leaving
 from shutil import copy
 
 # for "data containers"
 from json import load, dump
 
+""" VARIABLES """
+
 # consts
 EXTRA_PATH : str = '/tf/custom/ThePanaceaProject/sound/ui/'
+PANACEA_PATH : str = "sound/mm_xp_chime.wav"
 
-# funcs
+# changeable
+tf_path : str = "C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2"
+
+""" FUNCTIONS """
+
+# main one
 def Main() -> None:
     system("cls")
 
     Banner(Fore.YELLOW, "PANACEA", "The thing, that'll mute the \"exp gained\" sound effect!\n")
     
-    action : str = input("1. Fix the sound\n2. Overwrite the game's path\n3. Bring the sound back\n4. Leave\n\n>>> ")
+    action : str = input("1. Fix the sound\n2. Bring the sound back\n3. Leave\n\n>>> ")
     
     system("cls")
 
@@ -28,69 +38,64 @@ def Main() -> None:
         case "1":
             SoundReplacer()
         case "2":
-            PathChanger()
+            SoundRemover()
         case "3":
-            BringMySoundBack()
-        case "4":
             Escape(True)
         case _:
             Main()
 
-def SoundReplacer() -> None:
-    panacea_path, tf_path = "sound/mm_xp_chime.wav", Extractor()
-
-    makedirs(tf_path+EXTRA_PATH, exist_ok=True)
-
-    try:
-        copy(panacea_path, tf_path+EXTRA_PATH)
-        Banner(Fore.GREEN, "Success!", "The sound has been successfully overwritten!")
-        Escape(True)
-
-    except Exception as e:
-        Banner(Fore.RED, f"Oops!", f"Something went wrong! You just got an error, here's it: {e}")
-        Escape()    
-
-def Escape(leave : bool = False) -> None:
-    input(f"Press any key to {'close the app' if leave else 'go to the main menu'}\n>>> ")
-    leaving() if leave else Main()
-
+# creates a banner!
 def Banner(color : AnsiFore, header : str, subheader : str) -> None:
     print(color)
     art(header)
     print(subheader + Fore.WHITE)
 
-def Extractor() -> str:
-    try:
-        with open("config.json") as file:
-            return load(file)["Path"]
-    except:
-        return "C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2"
+# removes the original sound
+def SoundReplacer() -> None:
+    global tf_path
 
-def PathChanger() -> None:
-    try:
-        with open("config.json", "w") as file:
-            dump({"Path" : input("Your file path to the \"Team Fortress 2\" folder!\n>>> ")}, file, indent=2)
+    if path.exists(path.abspath(tf_path)):
 
-        file.close()
-
-        system("cls")
-
-        Banner(Fore.GREEN, "Success!", "The game's path has been successfully overwritten!")
+        makedirs(tf_path+EXTRA_PATH, exist_ok=True)
+        copy(PANACEA_PATH, tf_path+EXTRA_PATH)
+        Banner(Fore.GREEN, "Success!", "The sound has been successfully overwritten!")
         Escape()
-    except Exception as e:
-        Banner(Fore.RED, f"Oops!", f"Something went wrong! You just got an error, here's it: {e}")
-        Escape()   
 
-def BringMySoundBack() -> None:
-    try:
-        remove(Extractor()+EXTRA_PATH+"mm_xp_chime.wav")
-        removedirs(Extractor()+EXTRA_PATH)
+    else:
+
+        Banner(Fore.LIGHTGREEN_EX, "Path not found", "Please follow the instructions down below!\n\n")
+        tf_path = input(f"{Fore.RED}1. Open your Steam client and go to your Library.\n2. Right-click the game you want to check.\n3. Select Properties from the menu, then click on the Installed Files tab\n4. Then click on the \"Browse\" button\n5. Then the file manager will appear, copy the path from the top line and paste it here\n\n{Fore.WHITE}>>> ")
+        system("cls")
+        SoundReplacer()
+
+# brings the original sound back
+def SoundRemover() -> None:
+    global tf_path
+
+    if path.exists(path.abspath(tf_path+EXTRA_PATH+"mm_xp_chime.wav")):
+            
+        remove(tf_path+EXTRA_PATH+"mm_xp_chime.wav")
+        removedirs(tf_path+EXTRA_PATH)
         Banner(Fore.GREEN, "Success!", "The \"exp gained\" sound is back!")
         Escape()
 
-    except Exception as e:
-        Banner(Fore.RED, f"Oops!", f"Something went wrong! You just got an error, here's it: {e}")
-        Escape()   
+    else:
 
+        Banner(Fore.LIGHTGREEN_EX, "Path not found", "Please follow the instructions down below!\n\n")
+        tf_path = input(f"{Fore.RED}1. Open your Steam client and go to your Library.\n2. Right-click the game you want to check.\n3. Select Properties from the menu, then click on the Installed Files tab\n4. Then click on the \"Browse\" button\n5. Then the file manager will appear, copy the path from the top line and paste it here\n\n{Fore.WHITE}>>> ")
+        system("cls")
+        SoundRemover()
+
+# leaves...
+def Escape(leave : bool = False) -> None:
+    if leave: 
+        leaving()
+    else:
+        input(f"Press any key to {'close the app' if leave else 'go to the main menu'}\n>>> ")
+        Main()
+
+""" LAUNCHER """
+
+# the launcher
 if __name__ == '__main__':
     Main()
